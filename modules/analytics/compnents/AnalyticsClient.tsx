@@ -295,7 +295,7 @@ export default function AnalyticsClient({ data, periodDays }: AnalyticsClientPro
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-zinc-100 truncate">{courier.full_name}</p>
                   <div className="flex items-center gap-2 mt-0.5">
-                    <VehicleLabel type={courier.vehicle_type} iconOnly iconSize={12} className="text-zinc-500" />
+                    <VehicleLabel type={courier.vehicle_type as "bike" | "motorcycle" | "car" | "truck"} iconOnly iconSize={12} className="text-zinc-500" />
                     <span className="text-xs text-zinc-500">· {courier.total_deliveries} au total</span>
                   </div>
                 </div>
