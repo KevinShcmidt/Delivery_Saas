@@ -23,7 +23,7 @@ interface CourierListProps {
 export function CourierList({ couriers, totalCount, currentPage, totalPages }: CourierListProps) {
   if (couriers.length === 0) {
     return (
-      <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-16 text-center">
+      <div className="bg-gray-900 border border-white/10 ounded-xl p-16 text-center">
         <span className="text-5xl mb-4 block opacity-40">🏍️</span>
         <p className="text-zinc-400 font-medium">Aucun livreur trouvé</p>
         <p className="text-zinc-600 text-sm mt-1">Modifiez vos filtres ou ajoutez un premier livreur.</p>
@@ -40,7 +40,7 @@ export function CourierList({ couriers, totalCount, currentPage, totalPages }: C
       </p>
 
       {/* Tableau */}
-      <div className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden">
+      <div className="bg-gray-900 border border-white/10 rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>

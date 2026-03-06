@@ -24,11 +24,13 @@ interface ActionResult<T = null> {
 // Utilisé pour savoir qui notifier
 async function getAdminIds(): Promise<string[]> {
   const supabase = createAdminClient();
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("profiles")
-    .select("id")
+    .select("id, role")
     .eq("role", "admin")
     .eq("is_active", true);
+  
+  console.log("🔔 [getAdminIds] data:", data, "error:", error?.message);
   return (data ?? []).map((p) => p.id);
 }
 

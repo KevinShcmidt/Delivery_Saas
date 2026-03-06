@@ -94,7 +94,7 @@ export default function AnalyticsClient({ data, periodDays }: AnalyticsClientPro
         </div>
 
         {/* Sélecteur période */}
-        <div className="flex items-center gap-1 bg-zinc-900 border border-zinc-800 rounded-xl p-1">
+        <div className="flex items-center gap-1 bg-gray-900 border border-white/10 rounded-xl p-1">
           {PERIODS.map((p) => (
             <button
               key={p.value}
@@ -255,7 +255,7 @@ export default function AnalyticsClient({ data, periodDays }: AnalyticsClientPro
       </div>
 
       {/* Classement livreurs */}
-      <div className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden">
+      <div className="bg-gray-900 border border-white/10 rounded-xl overflow-hidden">
         <div className="h-0.5 bg-indigo-500" />
         <div className="px-6 py-4 border-b border-zinc-800">
           <h2 className="text-sm font-bold text-zinc-100">Classement des livreurs</h2>
@@ -329,7 +329,7 @@ function KpiCard({ label, value, sub, accent, valueColor }: {
   label: string; value: string | number; sub: string; accent: string; valueColor: string;
 }) {
   return (
-    <div className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden">
+    <div className="bg-gray-900 border border-white/10 rounded-xl overflow-hidden">
       <div className={["h-0.5", accent].join(" ")} />
       <div className="px-5 py-4">
         <p className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-2">{label}</p>
@@ -344,7 +344,7 @@ function ChartCard({ title, subtitle, children }: {
   title: string; subtitle: string; children: React.ReactNode;
 }) {
   return (
-    <div className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden">
+    <div className="bg-gray-900 border border-white/10 rounded-xl overflow-hidden">
       <div className="h-0.5 bg-zinc-700" />
       <div className="px-5 pt-4 pb-1">
         <p className="text-sm font-bold text-zinc-100">{title}</p>

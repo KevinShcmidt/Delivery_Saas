@@ -31,7 +31,7 @@ export function CourierStatsCard({
   ];
 
   return (
-    <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-6">
+    <div className="bg-gray-900 border border-white/10 rounded-xl p-6">
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">
           Statistiques
@@ -43,7 +43,7 @@ export function CourierStatsCard({
         {stats.map((stat) => (
           <div
             key={stat.label}
-            className="flex items-center justify-between py-3 border-b border-zinc-800/60 last:border-0"
+            className="flex items-center justify-between py-3 border-b last:border-0"
           >
             <div className="flex items-center gap-2.5">
               <span className="text-base" aria-hidden="true">{stat.icon}</span>

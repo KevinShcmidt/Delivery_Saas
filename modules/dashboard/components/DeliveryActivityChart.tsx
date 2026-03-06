@@ -55,7 +55,7 @@ export default function DeliveryActivityChart({
   const data = period === "day" ? dailyData : period === "week" ? weeklyData : monthlyData;
 
   return (
-    <div className="bg-[#12141f] border border-white/5 rounded-2xl p-6 flex-1">
+    <div className="bg-gray-900 border border-white/10 rounded-2xl p-6 flex-1">
       {/* Header */}
       <div className="flex items-start justify-between mb-5">
         <div>

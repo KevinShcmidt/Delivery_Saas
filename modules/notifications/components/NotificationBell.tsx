@@ -1,15 +1,26 @@
 /**
  * modules/notifications/components/NotificationBell.tsx
- * Cloche dans le header + dropdown + Supabase Realtime + Toast
+ * - Icônes Lucide (plus d'emojis)
+ * - Redirection vers /orders?id=xxx au clic
+ * - Supabase Realtime
+ * - Toast sonner
  */
 
 "use client";
 
 import { useState, useEffect, useRef, useTransition } from "react";
-import { createClient }       from "@/lib/client";
-import { toast }              from "sonner";
-import { markAsReadAction, markAllAsReadAction } from "@/modules/notifications/actions/notifications.actions";
-import type { Notification }  from "@/modules/notifications/queries/notifications.queries";
+import { useRouter }        from "next/navigation";
+import { createClient }     from "@/lib/client";
+import { toast }            from "sonner";
+import {
+  Bell, Package, CheckCircle, XCircle,
+  Truck, AlertTriangle, ShoppingBag, Info,
+} from "lucide-react";
+import {
+  markAsReadAction,
+  markAllAsReadAction,
+} from "@/modules/notifications/actions/notifications.actions";
+import type { Notification } from "@/modules/notifications/queries/notifications.queries";
 
 interface NotificationBellProps {
   userId:               string;
@@ -17,15 +28,32 @@ interface NotificationBellProps {
   initialUnreadCount:   number;
 }
 
-// ── Icône cloche ──────────────────────────────────────────────────────────────
-const IconBell = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className ?? "w-5 h-5"}>
-    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-    <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-  </svg>
-);
+// ── Icône selon type ──────────────────────────────────────────────────────────
+function NotifIcon({ type, className }: { type: string; className?: string }) {
+  const cls = className ?? "w-4 h-4";
+  if (type === "order_delivered")     return <CheckCircle  className={cls} />;
+  if (type === "order_cancelled")     return <XCircle      className={cls} />;
+  if (type === "order_assigned")      return <Truck        className={cls} />;
+  if (type === "order_in_transit")    return <Truck        className={cls} />;
+  if (type === "order_failed")        return <AlertTriangle className={cls} />;
+  if (type === "new_order_available") return <ShoppingBag  className={cls} />;
+  if (type === "order_picked_up")     return <Package      className={cls} />;
+  return <Info className={cls} />;
+}
 
-// ── Formatage date relative ───────────────────────────────────────────────────
+// ── Couleur accent selon type ─────────────────────────────────────────────────
+function typeAccent(type: string): string {
+  if (type === "order_delivered")     return "text-emerald-400 bg-emerald-500/10";
+  if (type === "order_cancelled")     return "text-red-400 bg-red-500/10";
+  if (type === "order_assigned")      return "text-blue-400 bg-blue-500/10";
+  if (type === "order_in_transit")    return "text-amber-400 bg-amber-500/10";
+  if (type === "order_failed")        return "text-orange-400 bg-orange-500/10";
+  if (type === "new_order_available") return "text-indigo-400 bg-indigo-500/10";
+  if (type === "order_picked_up")     return "text-cyan-400 bg-cyan-500/10";
+  return "text-zinc-400 bg-zinc-500/10";
+}
+
+// ── Date relative ─────────────────────────────────────────────────────────────
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
   const min  = Math.floor(diff / 60000);
@@ -36,30 +64,25 @@ function timeAgo(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString("fr-FR", { day: "2-digit", month: "short" });
 }
 
-// ── Couleur par type ──────────────────────────────────────────────────────────
-function typeColor(type: string): string {
-  if (type === "order_delivered")      return "bg-emerald-500";
-  if (type === "order_cancelled")      return "bg-red-500";
-  if (type === "courier_assigned")     return "bg-blue-500";
-  if (type === "order_created")        return "bg-indigo-500";
-  if (type === "order_status_changed") return "bg-amber-500";
-  return "bg-zinc-500";
+// ── Destination de redirection selon type ─────────────────────────────────────
+function getRedirectUrl(notif: Notification): string | null {
+  if (notif.order_id) return `/orders?highlight=${notif.order_id}`;
+  return null;
 }
 
 // ─── Composant principal ──────────────────────────────────────────────────────
 
 export default function NotificationBell({
-  userId,
-  initialNotifications,
-  initialUnreadCount,
+  userId, initialNotifications, initialUnreadCount,
 }: NotificationBellProps) {
   const [notifications, setNotifications] = useState<Notification[]>(initialNotifications);
   const [unreadCount, setUnreadCount]     = useState(initialUnreadCount);
   const [isOpen, setIsOpen]               = useState(false);
   const [isPending, startTransition]      = useTransition();
   const dropdownRef                       = useRef<HTMLDivElement>(null);
+  const router                            = useRouter();
 
-  // ── Ferme le dropdown en cliquant dehors ──────────────────────────────────
+  // Ferme au clic dehors
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -70,50 +93,42 @@ export default function NotificationBell({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // ── Supabase Realtime ─────────────────────────────────────────────────────
+  // Supabase Realtime
   useEffect(() => {
     const supabase = createClient();
-
-    const channel = supabase
+    const channel  = supabase
       .channel(`notifications-${userId}`)
       .on(
         "postgres_changes",
-        {
-          event:  "INSERT",
-          schema: "public",
-          table:  "notifications",
-          filter: `user_id=eq.${userId}`,
-        },
+        { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${userId}` },
         (payload) => {
           const newNotif = payload.new as Notification;
-
-          // Ajoute en tête de liste
           setNotifications((prev) => [newNotif, ...prev].slice(0, 20));
           setUnreadCount((prev) => prev + 1);
-
-          // Toast immédiat
-          toast(newNotif.title, {
-            description: newNotif.message,
-            duration:    5000,
-            icon:        "🔔",
-          });
+          toast(newNotif.title, { description: newNotif.message, duration: 5000 });
         }
       )
       .subscribe();
-
     return () => { supabase.removeChannel(channel); };
   }, [userId]);
 
-  // ── Marquer une notif comme lue ───────────────────────────────────────────
-  function handleMarkRead(notifId: string) {
-    setNotifications((prev) =>
-      prev.map((n) => n.id === notifId ? { ...n, is_read: true } : n)
-    );
-    setUnreadCount((prev) => Math.max(0, prev - 1));
-    startTransition(() => markAsReadAction(notifId));
+  // Clic sur une notification — marque lue + redirige
+  function handleNotifClick(notif: Notification) {
+    if (!notif.is_read) {
+      setNotifications((prev) =>
+        prev.map((n) => n.id === notif.id ? { ...n, is_read: true } : n)
+      );
+      setUnreadCount((prev) => Math.max(0, prev - 1));
+      startTransition(() => markAsReadAction(notif.id));
+    }
+
+    const url = getRedirectUrl(notif);
+    if (url) {
+      setIsOpen(false);
+      router.push(url);
+    }
   }
 
-  // ── Tout marquer comme lu ─────────────────────────────────────────────────
   function handleMarkAllRead() {
     setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
     setUnreadCount(0);
@@ -129,7 +144,7 @@ export default function NotificationBell({
         className="relative p-2 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-white/5 transition-all"
         aria-label="Notifications"
       >
-        <IconBell />
+        <Bell className="w-5 h-5" />
         {unreadCount > 0 && (
           <span className="absolute top-1 right-1 w-4 h-4 bg-indigo-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
             {unreadCount > 9 ? "9+" : unreadCount}
@@ -141,7 +156,7 @@ export default function NotificationBell({
       {isOpen && (
         <div className="absolute right-0 top-full mt-2 w-80 bg-gray-900 border border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden">
 
-          {/* Header dropdown */}
+          {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
             <div className="flex items-center gap-2">
               <span className="text-sm font-bold text-slate-100">Notifications</span>
@@ -165,44 +180,49 @@ export default function NotificationBell({
           {/* Liste */}
           <div className="max-h-[400px] overflow-y-auto divide-y divide-white/5">
             {notifications.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-10 text-zinc-600">
-                <IconBell className="w-8 h-8 mb-2 opacity-30" />
+              <div className="flex flex-col items-center justify-center py-10 gap-2 text-zinc-600">
+                <Bell className="w-8 h-8 opacity-30" />
                 <p className="text-sm">Aucune notification</p>
               </div>
             ) : (
-              notifications.map((notif) => (
-                <div
-                  key={notif.id}
-                  onClick={() => !notif.is_read && handleMarkRead(notif.id)}
-                  className={[
-                    "flex gap-3 px-4 py-3 transition-colors",
-                    !notif.is_read
-                      ? "bg-indigo-500/5 hover:bg-indigo-500/10 cursor-pointer"
-                      : "opacity-60",
-                  ].join(" ")}
-                >
-                  {/* Point coloré */}
-                  <div className="flex-shrink-0 mt-1.5">
-                    <span className={["w-2 h-2 rounded-full block", typeColor(notif.type)].join(" ")} />
-                  </div>
-
-                  {/* Contenu */}
-                  <div className="flex-1 min-w-0">
-                    <p className={["text-sm leading-snug", notif.is_read ? "text-slate-400" : "text-slate-100 font-medium"].join(" ")}>
-                      {notif.title}
-                    </p>
-                    <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{notif.message}</p>
-                    <p className="text-[10px] text-slate-600 mt-1">{timeAgo(notif.created_at)}</p>
-                  </div>
-
-                  {/* Point non lu */}
-                  {!notif.is_read && (
-                    <div className="flex-shrink-0 mt-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 block" />
+              notifications.map((notif) => {
+                const accent     = typeAccent(notif.type);
+                const hasRedirect = !!getRedirectUrl(notif);
+                return (
+                  <div
+                    key={notif.id}
+                    onClick={() => handleNotifClick(notif)}
+                    className={[
+                      "flex gap-3 px-4 py-3 transition-colors",
+                      hasRedirect ? "cursor-pointer" : "",
+                      !notif.is_read
+                        ? "bg-indigo-500/5 hover:bg-indigo-500/10"
+                        : "hover:bg-white/3 opacity-60",
+                    ].join(" ")}
+                  >
+                    {/* Icône colorée */}
+                    <div className={["w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5", accent].join(" ")}>
+                      <NotifIcon type={notif.type} className="w-4 h-4" />
                     </div>
-                  )}
-                </div>
-              ))
+
+                    {/* Contenu */}
+                    <div className="flex-1 min-w-0">
+                      <p className={["text-sm leading-snug", notif.is_read ? "text-slate-400" : "text-slate-100 font-medium"].join(" ")}>
+                        {notif.title}
+                      </p>
+                      <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{notif.message}</p>
+                      <p className="text-[10px] text-slate-600 mt-1">{timeAgo(notif.created_at)}</p>
+                    </div>
+
+                    {/* Indicateur non lu */}
+                    {!notif.is_read && (
+                      <div className="flex-shrink-0 mt-2">
+                        <span className="w-2 h-2 rounded-full bg-indigo-400 block" />
+                      </div>
+                    )}
+                  </div>
+                );
+              })
             )}
           </div>
 

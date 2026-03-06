@@ -138,7 +138,7 @@ export function LiveMapClient({ initialCouriers, activeCounts }: LiveMapClientPr
         </div>
 
         <div className="flex items-center gap-3 text-xs">
-          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-zinc-900 border border-zinc-800 rounded-lg">
+          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-900 border border-white/10 rounded-lg">
             <span className={[
               "w-1.5 h-1.5 rounded-full",
               realtimeStatus === "connected"  ? "bg-emerald-400 animate-pulse" : "",
@@ -194,7 +194,7 @@ export function LiveMapClient({ initialCouriers, activeCounts }: LiveMapClientPr
       </div>
 
       {/* Panneau simulateur */}
-      <div className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden">
+      <div className="bg-gray-900 border border-white/10 rounded-xl overflow-hidden">
         <div className="h-0.5 w-full bg-amber-500" />
         <div className="p-5">
           <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-widest mb-4">

@@ -1,15 +1,17 @@
 /**
  * modules/notifications/lib/notifications.helpers.ts
  * Fonctions utilitaires pures — PAS de "use server"
- * Construisent les payloads de notifications sans toucher à la DB.
  */
 
+// Valeurs exactes de l'enum notification_type en base
 export type NotificationType =
-  | "order_created"
-  | "order_status_changed"
-  | "courier_assigned"
+  | "order_assigned"
+  | "order_picked_up"
+  | "order_in_transit"
   | "order_delivered"
-  | "order_cancelled";
+  | "order_failed"
+  | "order_cancelled"
+  | "new_order_available";
 
 export interface NotificationPayload {
   userId:   string;
@@ -28,6 +30,16 @@ const STATUS_LABELS: Record<string, string> = {
   cancelled:  "Annulé",
 };
 
+// Mapping statut commande → enum notification_type DB
+const TYPE_MAP: Record<string, NotificationType> = {
+  assigned:   "order_assigned",
+  in_transit: "order_in_transit",
+  delivered:  "order_delivered",
+  failed:     "order_failed",
+  cancelled:  "order_cancelled",
+  picked_up:  "order_picked_up",
+};
+
 export function buildStatusNotifications(params: {
   orderNumber: string;
   orderId:     string;
@@ -39,36 +51,30 @@ export function buildStatusNotifications(params: {
   const notifications: NotificationPayload[] = [];
   const label = STATUS_LABELS[newStatus] ?? newStatus;
 
-  let type: NotificationType = "order_status_changed";
+  const type: NotificationType = TYPE_MAP[newStatus] ?? "new_order_available";
+
+  // Titre et message selon le statut
   let title   = `Commande ${orderNumber}`;
   let message = `Statut mis à jour : ${label}`;
 
-  if (newStatus === "delivered") {
-    type    = "order_delivered";
-    title   = `✅ Commande livrée`;
-    message = `La commande ${orderNumber} a été livrée avec succès.`;
-  } else if (newStatus === "cancelled") {
-    type    = "order_cancelled";
-    title   = `❌ Commande annulée`;
-    message = `La commande ${orderNumber} a été annulée.`;
-  } else if (newStatus === "assigned") {
-    type    = "courier_assigned";
-    title   = `🏍️ Livreur assigné`;
-    message = `Un livreur a été assigné à la commande ${orderNumber}.`;
-  }
+  if (newStatus === "delivered")  { title = "Commande livrée";    message = `La commande ${orderNumber} a été livrée avec succès.`; }
+  if (newStatus === "cancelled")  { title = "Commande annulée";   message = `La commande ${orderNumber} a été annulée.`; }
+  if (newStatus === "assigned")   { title = "Livreur assigné";    message = `Un livreur a été assigné à la commande ${orderNumber}.`; }
+  if (newStatus === "in_transit") { title = "Commande en transit"; message = `La commande ${orderNumber} est en cours de livraison.`; }
+  if (newStatus === "failed")     { title = "Livraison échouée";  message = `La livraison de la commande ${orderNumber} a échoué.`; }
 
-  // Admins
+  // Notifie tous les admins
   adminIds.forEach((userId) => {
     notifications.push({ userId, orderId, type, title, message });
   });
 
-  // Livreur concerné lors de l'assignation
+  // Notifie le livreur lors de l'assignation
   if (courierId && newStatus === "assigned") {
     notifications.push({
       userId:  courierId,
       orderId,
-      type:    "courier_assigned",
-      title:   `🏍️ Nouvelle commande assignée`,
+      type:    "order_assigned",
+      title:   "Nouvelle commande assignée",
       message: `La commande ${orderNumber} vous a été assignée.`,
     });
   }
@@ -86,8 +92,8 @@ export function buildNewOrderNotifications(params: {
   return adminIds.map((userId) => ({
     userId,
     orderId,
-    type:    "order_created" as NotificationType,
-    title:   `📦 Nouvelle commande`,
+    type:    "new_order_available" as NotificationType,
+    title:   "Nouvelle commande",
     message: `Commande ${orderNumber} créée pour ${clientName}.`,
   }));
 }

@@ -49,7 +49,7 @@ export default function CourierStatusChart({ data }: CourierStatusChartProps) {
     : [{ key: "empty", label: "Aucun", color: "#27272a", value: 1 }];
 
   return (
-    <div className="bg-[#12141f] border border-white/5 rounded-2xl p-6 w-full lg:w-72 flex-shrink-0">
+    <div className="bg-gray-900 border border-white/10 rounded-2xl p-6 w-full lg:w-72 flex-shrink-0">
       <div className="mb-5">
         <h2 className="text-base font-bold text-slate-100">Statut des livreurs</h2>
         <p className="text-xs text-slate-500 mt-0.5">Disponibilité en temps réel</p>

@@ -38,7 +38,7 @@ export function CourierDetail({ courier }: CourierDetailProps) {
       </nav>
 
       {/* Header card */}
-      <div className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden">
+      <div className="bg-gray-900 border-white/10 rounded-xl border  overflow-hidden">
         {/* Barre colorée en haut — signature du design FleetOps */}
         <div className={["h-1 w-full", isInactive ? "bg-red-500/60" : "bg-indigo-500"].join(" ")} />
 
@@ -147,7 +147,7 @@ function InfoCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className={["bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden"].join(" ")}>
+    <div className={["bg-gray-900 border border-white/10 rounded-xl overflow-hidden"].join(" ")}>
       <div className={["h-0.5 w-full", accent].join(" ")} />
       <div className="p-5">
         <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-widest mb-4">

@@ -63,7 +63,7 @@ export default async function CouriersPage({ searchParams }: PageProps) {
       </div>
 
       {/* Filtres */}
-      <div className="bg-zinc-900 rounded-xl border border-zinc-800 px-5 py-4">
+      <div className="bg-gray-900 border border-white/10 rounded-xl px-5 py-4">
         <Suspense fallback={<div className="h-8 bg-zinc-800 animate-pulse rounded" />}>
           <CourierFiltersBar />
         </Suspense>
@@ -84,7 +84,7 @@ function MiniStat({ label, value, accent, valueColor }: {
   label: string; value: number; accent: string; valueColor: string;
 }) {
   return (
-    <div className={["bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden"].join(" ")}>
+    <div className={["bg-gray-900 border border-white/10 rounded-xl overflow-hidden"].join(" ")}>
       <div className={["h-0.5", accent].join(" ")} />
       <div className="px-5 py-4">
         <p className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-2">{label}</p>
