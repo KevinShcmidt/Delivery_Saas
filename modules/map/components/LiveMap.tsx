@@ -151,49 +151,41 @@ export default function LiveMap({
     let lastTime  = performance.now();
 
     function step(now: number) {
+      // 1. On récupère la valeur actuelle depuis le Ref
+      const currentState = statesRef.current.get(courierId);
+    
+      // 2. Type Guard : Si state est undefined, on arrête tout proprement
+      if (!currentState) return;
+    
       if (now - lastTime < STEP_MS) {
-        if (!state) return;
-        if (state) {
-          if (state) {
-            if (state) {
-              if (state) {
-                if (state) {
-                  state.animFrame = requestAnimationFrame(step);
-                }
-              }
-            }
-          }
-        }
+        currentState.animFrame = requestAnimationFrame(step);
         return;
       }
+      
       lastTime = now;
-
+    
       if (index >= route.length - 1) {
-        // Fin de route — reset au départ pour boucler
         index = 0;
         tracedLine.setLatLngs([[route[0].lat, route[0].lng]]);
       } else {
         index++;
       }
-
-      if (state) {
-        state.routeIndex = index;
-      }
+    
+      // Ici, TypeScript sait que 'currentState' est de type 'CourierMapState' (pas undefined)
+      currentState.routeIndex = index;
       const { lat, lng } = route[index];
-
-      // Déplace le marqueur Leaflet localement (instantané)
-      if (state) {
-        state.marker?.setLatLng([lat, lng]);
-      }
-
+    
+      // Déplace le marqueur Leaflet
+      currentState.marker?.setLatLng([lat, lng]);
+    
       // Met à jour le tracé jaune
       const traced = route.slice(0, index + 1).map((p) => [p.lat, p.lng]);
       if (traced.length > 1) tracedLine.setLatLngs(traced);
-
-      // Envoie la position à Supabase (Realtime propagera aux autres clients)
+    
+      // Envoie la position à la simulation
       updatePosition(lat, lng);
-
-      state.animFrame = requestAnimationFrame(step);
+    
+      currentState.animFrame = requestAnimationFrame(step);
     }
 
     state.animFrame = requestAnimationFrame(step);
