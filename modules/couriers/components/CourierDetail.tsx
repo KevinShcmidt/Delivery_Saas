@@ -1,9 +1,9 @@
 /**
  * modules/couriers/components/courier-detail/CourierDetail.tsx
- * Dark mode — style FleetOps
  */
 
 import Link from "next/link";
+import { Pencil } from "lucide-react";
 import {
   getCourierDisplayName,
   getVehicleLabel,
@@ -13,9 +13,9 @@ import {
 } from "@/core/entities/courier.entity";
 import { CourierToggleActiveButton } from "./CourierToggleActiveButton";
 import { CourierDeleteButton }       from "./CourierDeleteButton";
-import type { CourierWithProfile } from "@/core/types";
-import { CourierStatusBadge } from "./CourierStatusBadge";
-import { CourierStatsCard } from "./CourierStatsCard";
+import type { CourierWithProfile }   from "@/core/types";
+import { CourierStatusBadge }        from "./CourierStatusBadge";
+import { CourierStatsCard }          from "./CourierStatsCard";
 
 interface CourierDetailProps {
   courier: CourierWithProfile;
@@ -38,8 +38,7 @@ export function CourierDetail({ courier }: CourierDetailProps) {
       </nav>
 
       {/* Header card */}
-      <div className="bg-gray-900 border-white/10 rounded-xl border  overflow-hidden">
-        {/* Barre colorée en haut — signature du design FleetOps */}
+      <div className="bg-gray-900 border-white/10 rounded-xl border overflow-hidden">
         <div className={["h-1 w-full", isInactive ? "bg-red-500/60" : "bg-indigo-500"].join(" ")} />
 
         <div className="p-6 flex flex-wrap items-start gap-5">
@@ -76,9 +75,10 @@ export function CourierDetail({ courier }: CourierDetailProps) {
           <div className="flex items-center gap-2 flex-shrink-0">
             <Link
               href={`/couriers/${courier.id}/edit`}
-              className="px-4 py-2 text-sm font-medium text-zinc-300 border border-zinc-700 bg-zinc-800/60 hover:bg-zinc-700/60 hover:border-zinc-600 rounded-lg transition-all"
+              className="px-4 py-2 text-sm font-medium text-zinc-300 border border-zinc-700 bg-zinc-800/60 hover:bg-zinc-700/60 hover:border-zinc-600 rounded-lg transition-all flex items-center gap-2"
             >
-              ✏️ Modifier
+              <Pencil className="w-3.5 h-3.5" />
+              Modifier
             </Link>
             <CourierToggleActiveButton
               courierId={courier.id}
@@ -97,34 +97,22 @@ export function CourierDetail({ courier }: CourierDetailProps) {
 
       {/* Grille d'infos */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-
-        {/* Véhicule */}
         <InfoCard title="Véhicule" accent="border-t-orange-500">
           <InfoRow label="Type"   value={getVehicleLabel(courier.vehicle_type)} />
           <InfoRow label="Plaque" value={courier.vehicle_plate ?? "—"} mono />
         </InfoCard>
 
-        {/* Position GPS */}
         <InfoCard title="Dernière position" accent="border-t-emerald-500">
-          <InfoRow
-            label="Coordonnées"
-            value={formatCourierLocation(courier.current_lat, courier.current_lng)}
-            mono
-          />
-          <InfoRow
-            label="Mis à jour"
-            value={formatLastLocationTime(courier.last_location_at)}
-          />
+          <InfoRow label="Coordonnées" value={formatCourierLocation(courier.current_lat, courier.current_lng)} mono />
+          <InfoRow label="Mis à jour"  value={formatLastLocationTime(courier.last_location_at)} />
         </InfoCard>
 
-        {/* Performances */}
         <InfoCard title="Performances" accent="border-t-blue-500">
           <InfoRow label="Livraisons" value={courier.total_deliveries.toLocaleString("fr-FR")} />
           <InfoRow label="Note"       value={formatCourierRating(courier.rating)} />
         </InfoCard>
       </div>
 
-      {/* Stats card */}
       <CourierStatsCard
         totalDeliveries={courier.total_deliveries}
         rating={courier.rating}
@@ -137,37 +125,19 @@ export function CourierDetail({ courier }: CourierDetailProps) {
 
 // ─── Sous-composants ──────────────────────────────────────────────────────────
 
-function InfoCard({
-  title,
-  accent,
-  children,
-}: {
-  title: string;
-  accent: string;
-  children: React.ReactNode;
-}) {
+function InfoCard({ title, accent, children }: { title: string; accent: string; children: React.ReactNode }) {
   return (
-    <div className={["bg-gray-900 border border-white/10 rounded-xl overflow-hidden"].join(" ")}>
+    <div className="bg-gray-900 border border-white/10 rounded-xl overflow-hidden">
       <div className={["h-0.5 w-full", accent].join(" ")} />
       <div className="p-5">
-        <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-widest mb-4">
-          {title}
-        </h3>
+        <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-widest mb-4">{title}</h3>
         <div className="space-y-3">{children}</div>
       </div>
     </div>
   );
 }
 
-function InfoRow({
-  label,
-  value,
-  mono = false,
-}: {
-  label: string;
-  value: string;
-  mono?: boolean;
-}) {
+function InfoRow({ label, value, mono = false }: { label: string; value: string; mono?: boolean }) {
   return (
     <div className="flex items-start justify-between gap-4">
       <span className="text-sm text-zinc-500 flex-shrink-0">{label}</span>

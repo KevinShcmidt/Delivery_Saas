@@ -1,18 +1,18 @@
 /**
  * modules/couriers/components/courier-form/CourierForm.tsx
- * Dark mode — style FleetOps
  */
 
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter }               from "next/navigation";
+import { Eye, EyeOff, AlertCircle } from "lucide-react";
 import {
   validateCourierForm,
   hasFormErrors,
   type CourierFormErrors,
 } from "@/core/entities/courier.entity";
-import { VEHICLE_TYPE_LABELS } from "@/core/types";
+import { VEHICLE_TYPE_LABELS }     from "@/core/types";
 import {
   createCourierAction,
   updateCourierAction,
@@ -22,8 +22,8 @@ import type { CourierWithProfile, VehicleType } from "@/core/types";
 type CourierFormMode = "create" | "edit";
 
 interface CourierFormProps {
-  mode: CourierFormMode;
-  courier?: CourierWithProfile;
+  mode:       CourierFormMode;
+  courier?:   CourierWithProfile;
   onSuccess?: () => void;
 }
 
@@ -32,18 +32,21 @@ function getInitialValues(courier?: CourierWithProfile) {
     return { full_name: "", email: "", phone: "", password: "", vehicle_type: "motorcycle" as VehicleType, vehicle_plate: "" };
   }
   return {
-    full_name: courier.profile.full_name, email: courier.profile.email,
-    phone: courier.profile.phone ?? "", password: "",
-    vehicle_type: courier.vehicle_type, vehicle_plate: courier.vehicle_plate ?? "",
+    full_name:     courier.profile.full_name,
+    email:         courier.profile.email,
+    phone:         courier.profile.phone ?? "",
+    password:      "",
+    vehicle_type:  courier.vehicle_type,
+    vehicle_plate: courier.vehicle_plate ?? "",
   };
 }
 
 export function CourierForm({ mode, courier, onSuccess }: CourierFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [values, setValues]             = useState(getInitialValues(courier));
-  const [errors, setErrors]             = useState<CourierFormErrors>({});
-  const [serverError, setServerError]   = useState<string | null>(null);
+  const [values, setValues]           = useState(getInitialValues(courier));
+  const [errors, setErrors]           = useState<CourierFormErrors>({});
+  const [serverError, setServerError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
 
   function handleChange(field: keyof typeof values, value: string) {
@@ -90,22 +93,18 @@ export function CourierForm({ mode, courier, onSuccess }: CourierFormProps) {
 
   return (
     <div className="space-y-6">
+
+      {/* Erreur serveur */}
       {serverError && (
         <div className="p-4 bg-red-950/40 border border-red-800/60 rounded-lg flex items-start gap-3">
-          <span className="text-red-400 mt-0.5 flex-shrink-0">⚠️</span>
+          <AlertCircle className="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" />
           <p className="text-sm text-red-300">{serverError}</p>
         </div>
       )}
 
       {/* Section : Infos personnelles */}
       <div className="space-y-4">
-        <div className="flex items-center gap-3">
-          <div className="h-px flex-1 bg-zinc-800" />
-          <span className="text-xs font-semibold text-zinc-500 uppercase tracking-widest px-2">
-            Informations personnelles
-          </span>
-          <div className="h-px flex-1 bg-zinc-800" />
-        </div>
+        <SectionDivider label="Informations personnelles" />
 
         <Field label="Nom complet" required error={errors.full_name}>
           <input id="full_name" type="text" placeholder="Jean Rakoto" value={values.full_name}
@@ -132,8 +131,8 @@ export function CourierForm({ mode, courier, onSuccess }: CourierFormProps) {
                 value={values.password} onChange={(e) => handleChange("password", e.target.value)}
                 disabled={isPending} className={[ic(!!errors.password), "pr-10"].join(" ")} />
               <button type="button" onClick={() => setShowPassword((v) => !v)} tabIndex={-1}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors text-sm">
-                {showPassword ? "🙈" : "👁️"}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors">
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
           </Field>
@@ -142,13 +141,7 @@ export function CourierForm({ mode, courier, onSuccess }: CourierFormProps) {
 
       {/* Section : Véhicule */}
       <div className="space-y-4">
-        <div className="flex items-center gap-3">
-          <div className="h-px flex-1 bg-zinc-800" />
-          <span className="text-xs font-semibold text-zinc-500 uppercase tracking-widest px-2">
-            Véhicule
-          </span>
-          <div className="h-px flex-1 bg-zinc-800" />
-        </div>
+        <SectionDivider label="Véhicule" />
 
         <Field label="Type de véhicule" required error={errors.vehicle_type}>
           <select value={values.vehicle_type} onChange={(e) => handleChange("vehicle_type", e.target.value)}
@@ -183,6 +176,18 @@ export function CourierForm({ mode, courier, onSuccess }: CourierFormProps) {
   );
 }
 
+// ─── Sous-composants ──────────────────────────────────────────────────────────
+
+function SectionDivider({ label }: { label: string }) {
+  return (
+    <div className="flex items-center gap-3">
+      <div className="h-px flex-1 bg-zinc-800" />
+      <span className="text-xs font-semibold text-zinc-500 uppercase tracking-widest px-2">{label}</span>
+      <div className="h-px flex-1 bg-zinc-800" />
+    </div>
+  );
+}
+
 function Field({ label, required, hint, error, children }: {
   label: string; required?: boolean; hint?: string; error?: string; children: React.ReactNode;
 }) {
@@ -196,8 +201,9 @@ function Field({ label, required, hint, error, children }: {
       </div>
       {children}
       {error && (
-        <p className="text-xs text-red-400 flex items-center gap-1">
-          <span aria-hidden="true">⚠</span> {error}
+        <p className="text-xs text-red-400 flex items-center gap-1.5">
+          <AlertCircle className="w-3 h-3 flex-shrink-0" />
+          {error}
         </p>
       )}
     </div>

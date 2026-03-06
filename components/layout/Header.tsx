@@ -6,6 +6,7 @@
  */
 
 import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link                   from "next/link";
 import type { Profile }       from "@/core/types";
 import { USER_ROLE_LABELS }   from "@/core/types";
@@ -35,12 +36,14 @@ export default function Header({
   const [showMenu, setShowMenu]     = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
   async function handleSignOut() {
     setSigningOut(true);
     const supabase = createClient();
     await supabase.auth.signOut();
-    window.location.replace("/login");
+    router.push("/login");
+    
   }
 
   useEffect(() => {
@@ -100,9 +103,17 @@ export default function Header({
       <div ref={menuRef} className="relative">
         <button
           onClick={() => setShowMenu((p) => !p)}
-          className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-purple-700 flex items-center justify-center text-xs font-bold text-white hover:scale-105 transition-transform cursor-pointer border-0"
+          className="w-8 h-8 rounded-lg overflow-hidden bg-gradient-to-br from-violet-500 to-purple-700 flex items-center justify-center text-xs font-bold text-white hover:scale-105 transition-transform cursor-pointer border-0"
         >
-          {initials}
+          {profile.avatar_url ? (
+            <img
+              src={profile.avatar_url}
+              alt={profile.full_name}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            initials
+          )}
         </button>
 
         {showMenu && (

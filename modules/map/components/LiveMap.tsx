@@ -9,12 +9,11 @@
 "use client";
 
 import { useEffect, useRef, useCallback } from "react";
-import type { MapCourier }  from "@/modules/map/queries/map.queries";
 import type { RoutePoint }  from "@/modules/map/lib/routing";
+import { MapCourier } from "../queriees/map.queries";
+import { VehicleLabel } from "@/components/shared/VehicleLabel";
+import { renderToStaticMarkup } from "react-dom/server";
 
-const VEHICLE_ICONS: Record<string, string> = {
-  motorcycle: "🏍️", bike: "🚲", car: "🚗", truck: "🚚",
-};
 const STATUS_COLORS: Record<string, string> = {
   available: "#10b981", busy: "#f59e0b", offline: "#52525b",
 };
@@ -61,15 +60,19 @@ export default function LiveMap({
   const upsertMarker = useCallback((L: any, map: any, courier: MapCourier) => {
     if (!courier.current_lat || !courier.current_lng) return;
 
-    const color   = STATUS_COLORS[courier.status] ?? STATUS_COLORS.offline;
-    const vehicle = VEHICLE_ICONS[courier.vehicle_type] ?? "🏍️";
+  const color = STATUS_COLORS[courier.status] ?? STATUS_COLORS.offline;
+  
+  // Utilisation de renderToStaticMarkup pour transformer le composant en string HTML
+  const vehicleHtml = renderToStaticMarkup(
+    <VehicleLabel iconOnly type={courier.vehicle_type as "bike" | "motorcycle" | "car" | "truck"} />
+  );
     const latlng  = [courier.current_lat, courier.current_lng] as [number, number];
     const state   = statesRef.current.get(courier.id);
 
     if (state?.marker) {
       // Déplace le marqueur existant
       state.marker.setLatLng(latlng);
-      state.marker.setIcon(buildCourierIcon(L, color, vehicle));
+      state.marker.setIcon(buildCourierIcon(L, color, vehicleHtml)); 
       state.marker.setPopupContent(buildCourierPopup(courier, color));
 
       // Met à jour le tracé jaune parcouru jusqu'à la position actuelle
@@ -83,7 +86,9 @@ export default function LiveMap({
       }
     } else {
       // Nouveau marqueur
-      const marker = L.marker(latlng, { icon: buildCourierIcon(L, color, vehicle) });
+      const marker = L.marker(latlng, { 
+        icon: buildCourierIcon(L, color, vehicleHtml) 
+      });
       marker.bindPopup(buildCourierPopup(courier, color), {
         className: "leaflet-popup-dark", maxWidth: 280,
       });
@@ -147,7 +152,18 @@ export default function LiveMap({
 
     function step(now: number) {
       if (now - lastTime < STEP_MS) {
-        state.animFrame = requestAnimationFrame(step);
+        if (!state) return;
+        if (state) {
+          if (state) {
+            if (state) {
+              if (state) {
+                if (state) {
+                  state.animFrame = requestAnimationFrame(step);
+                }
+              }
+            }
+          }
+        }
         return;
       }
       lastTime = now;
@@ -160,11 +176,15 @@ export default function LiveMap({
         index++;
       }
 
-      state.routeIndex = index;
+      if (state) {
+        state.routeIndex = index;
+      }
       const { lat, lng } = route[index];
 
       // Déplace le marqueur Leaflet localement (instantané)
-      state.marker?.setLatLng([lat, lng]);
+      if (state) {
+        state.marker?.setLatLng([lat, lng]);
+      }
 
       // Met à jour le tracé jaune
       const traced = route.slice(0, index + 1).map((p) => [p.lat, p.lng]);
@@ -304,11 +324,27 @@ export default function LiveMap({
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function buildCourierIcon(L: any, color: string, vehicle: string) {
+function buildCourierIcon(L: any, color: string, vehicleHtml: string) {
   return L.divIcon({
     className: "",
-    iconSize: [40, 40], iconAnchor: [20, 20], popupAnchor: [0, -24],
-    html: `<div style="width:40px;height:40px;background:${color}22;border:2px solid ${color};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 0 12px ${color}66;cursor:pointer;">${vehicle}</div>`,
+    iconSize: [40, 40],
+    iconAnchor: [20, 20],
+    popupAnchor: [0, -24],
+    html: `
+      <div style="
+        width: 40px;
+        height: 40px;
+        background: ${color}22;
+        border: 2px solid ${color};
+        border-radius: 50%;
+        display: flex;            /* Active le flex */
+        align-items: center;      /* Centre verticalement */
+        justify-content: center;   /* Centre horizontalement */
+        box-shadow: 0 0 12px ${color}66;
+        overflow: hidden;         /* Évite que le SVG dépasse */
+      ">
+        ${vehicleHtml}
+      </div>`,
   });
 }
 

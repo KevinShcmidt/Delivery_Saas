@@ -1,9 +1,9 @@
 /**
  * modules/couriers/components/courier-list/CourierList.tsx
- * Dark mode — style FleetOps
  */
 
-import Link from "next/link";
+import Link    from "next/link";
+import { Bike, ChevronRight, ChevronLeft } from "lucide-react";
 import {
   getCourierDisplayName,
   getVehicleLabel,
@@ -12,19 +12,22 @@ import {
 } from "@/core/entities/courier.entity";
 import type { CourierWithActiveOrders } from "@/modules/couriers/queries/courier.queries";
 import { CourierStatusBadge } from "./CourierStatusBadge";
+import { VehicleLabel } from "@/components/shared/VehicleLabel";
 
 interface CourierListProps {
-  couriers: CourierWithActiveOrders[];
-  totalCount: number;
+  couriers:    CourierWithActiveOrders[];
+  totalCount:  number;
   currentPage: number;
-  totalPages: number;
+  totalPages:  number;
 }
 
 export function CourierList({ couriers, totalCount, currentPage, totalPages }: CourierListProps) {
   if (couriers.length === 0) {
     return (
-      <div className="bg-gray-900 border border-white/10 ounded-xl p-16 text-center">
-        <span className="text-5xl mb-4 block opacity-40">🏍️</span>
+      <div className="bg-gray-900 border border-white/10 rounded-xl p-16 text-center">
+        <div className="w-14 h-14 rounded-2xl bg-zinc-800 border border-zinc-700 flex items-center justify-center mx-auto mb-4">
+          <Bike className="w-7 h-7 text-zinc-600" />
+        </div>
         <p className="text-zinc-400 font-medium">Aucun livreur trouvé</p>
         <p className="text-zinc-600 text-sm mt-1">Modifiez vos filtres ou ajoutez un premier livreur.</p>
       </div>
@@ -63,7 +66,6 @@ export function CourierList({ couriers, totalCount, currentPage, totalPages }: C
         </div>
       </div>
 
-      {/* Pagination */}
       {totalPages > 1 && (
         <Pagination currentPage={currentPage} totalPages={totalPages} />
       )}
@@ -93,9 +95,7 @@ function CourierRow({ courier }: { courier: CourierWithActiveOrders }) {
           <div>
             <p className="font-medium text-zinc-100 leading-tight">
               {displayName}
-              {isInactive && (
-                <span className="ml-2 text-xs text-red-400 font-normal">(désactivé)</span>
-              )}
+              {isInactive && <span className="ml-2 text-xs text-red-400 font-normal">(désactivé)</span>}
             </p>
             <p className="text-zinc-500 text-xs mt-0.5">{courier.profile.email}</p>
           </div>
@@ -109,7 +109,7 @@ function CourierRow({ courier }: { courier: CourierWithActiveOrders }) {
 
       {/* Véhicule */}
       <td className="px-5 py-4">
-        <span className="text-zinc-300">{getVehicleLabel(courier.vehicle_type)}</span>
+        <span className="text-zinc-300"><VehicleLabel type={courier.vehicle_type} /></span>
         {courier.vehicle_plate && (
           <p className="text-zinc-600 text-xs font-mono mt-0.5">{courier.vehicle_plate}</p>
         )}
@@ -117,23 +117,16 @@ function CourierRow({ courier }: { courier: CourierWithActiveOrders }) {
 
       {/* En cours */}
       <td className="px-5 py-4">
-        <span className={[
-          "font-semibold tabular-nums",
-          courier.activeOrdersCount > 0 ? "text-orange-400" : "text-zinc-500",
-        ].join(" ")}>
+        <span className={["font-semibold tabular-nums", courier.activeOrdersCount > 0 ? "text-orange-400" : "text-zinc-500"].join(" ")}>
           {courier.activeOrdersCount > 0 ? `${courier.activeOrdersCount} en cours` : "—"}
         </span>
       </td>
 
       {/* Note */}
-      <td className="px-5 py-4 text-zinc-300">
-        {formatCourierRating(courier.rating)}
-      </td>
+      <td className="px-5 py-4 text-zinc-300">{formatCourierRating(courier.rating)}</td>
 
       {/* Position */}
-      <td className="px-5 py-4 text-zinc-500 text-xs">
-        {formatLastLocationTime(courier.last_location_at)}
-      </td>
+      <td className="px-5 py-4 text-zinc-500 text-xs">{formatLastLocationTime(courier.last_location_at)}</td>
 
       {/* Actions */}
       <td className="px-5 py-4 text-right">
@@ -141,7 +134,8 @@ function CourierRow({ courier }: { courier: CourierWithActiveOrders }) {
           href={`/couriers/${courier.id}`}
           className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-indigo-400 hover:text-indigo-300 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 hover:border-indigo-500/40 rounded-lg transition-all"
         >
-          Voir →
+          Voir
+          <ChevronRight className="w-3 h-3" />
         </Link>
       </td>
     </tr>
@@ -149,8 +143,8 @@ function CourierRow({ courier }: { courier: CourierWithActiveOrders }) {
 }
 
 function Pagination({ currentPage, totalPages }: { currentPage: number; totalPages: number }) {
-  const btnBase = "px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors";
-  const btnActive = "text-zinc-300 bg-zinc-800 border-zinc-700 hover:bg-zinc-700 hover:border-zinc-600";
+  const btnBase     = "px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors flex items-center gap-1";
+  const btnActive   = "text-zinc-300 bg-zinc-800 border-zinc-700 hover:bg-zinc-700 hover:border-zinc-600";
   const btnDisabled = "text-zinc-600 bg-zinc-900 border-zinc-800 cursor-not-allowed";
 
   return (
@@ -160,14 +154,22 @@ function Pagination({ currentPage, totalPages }: { currentPage: number; totalPag
       </p>
       <div className="flex gap-2">
         {currentPage > 1 ? (
-          <Link href={`?page=${currentPage - 1}`} className={[btnBase, btnActive].join(" ")}>← Précédent</Link>
+          <Link href={`?page=${currentPage - 1}`} className={[btnBase, btnActive].join(" ")}>
+            <ChevronLeft className="w-3 h-3" /> Précédent
+          </Link>
         ) : (
-          <span className={[btnBase, btnDisabled].join(" ")}>← Précédent</span>
+          <span className={[btnBase, btnDisabled].join(" ")}>
+            <ChevronLeft className="w-3 h-3" /> Précédent
+          </span>
         )}
         {currentPage < totalPages ? (
-          <Link href={`?page=${currentPage + 1}`} className={[btnBase, btnActive].join(" ")}>Suivant →</Link>
+          <Link href={`?page=${currentPage + 1}`} className={[btnBase, btnActive].join(" ")}>
+            Suivant <ChevronRight className="w-3 h-3" />
+          </Link>
         ) : (
-          <span className={[btnBase, btnDisabled].join(" ")}>Suivant →</span>
+          <span className={[btnBase, btnDisabled].join(" ")}>
+            Suivant <ChevronRight className="w-3 h-3" />
+          </span>
         )}
       </div>
     </div>

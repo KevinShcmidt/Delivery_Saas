@@ -10,9 +10,22 @@ import { useRouter } from "next/navigation";
 import {
   LineChart, Line, BarChart, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, PieChart, Pie, Cell, Legend,
+  ResponsiveContainer, PieChart, Pie, Cell,
 } from "recharts";
+import { 
+  TrendingUp, 
+  DollarSign, 
+  CheckCircle2, 
+  Clock, 
+  Calendar,
+  Trophy,
+  Loader2,
+  BarChart3,
+  PieChart as PieChartIcon,
+  Star
+} from "lucide-react";
 import { AnalyticsData } from "../analytics.queries";
+import { VehicleLabel } from "@/components/shared/VehicleLabel";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -22,10 +35,6 @@ function formatAmount(n: number) {
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString("fr-FR", { day: "2-digit", month: "short" });
 }
-
-const VEHICLE_ICONS: Record<string, string> = {
-  motorcycle: "🏍️", bike: "🚲", car: "🚗", truck: "🚚",
-};
 
 // ─── Tooltip custom ───────────────────────────────────────────────────────────
 
@@ -72,7 +81,6 @@ export default function AnalyticsClient({ data, periodDays }: AnalyticsClientPro
     });
   }
 
-  // Format données pour recharts
   const chartData = data.dailyStats.map((d) => ({
     date:      formatDate(d.date),
     Commandes: d.orders,
@@ -88,9 +96,10 @@ export default function AnalyticsClient({ data, periodDays }: AnalyticsClientPro
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-zinc-100">Statistiques</h1>
-          <p className="text-zinc-500 text-sm mt-0.5">
-            Du {formatDate(data.periodStart)} au {formatDate(data.periodEnd)}
-          </p>
+          <div className="flex items-center gap-2 text-zinc-500 text-sm mt-0.5">
+            <Calendar size={14} />
+            <span>Du {formatDate(data.periodStart)} au {formatDate(data.periodEnd)}</span>
+          </div>
         </div>
 
         {/* Sélecteur période */}
@@ -111,7 +120,7 @@ export default function AnalyticsClient({ data, periodDays }: AnalyticsClientPro
             </button>
           ))}
           {isPending && (
-            <div className="w-4 h-4 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin ml-1" />
+            <Loader2 className="w-4 h-4 text-indigo-400 animate-spin ml-1" />
           )}
         </div>
       </div>
@@ -122,6 +131,7 @@ export default function AnalyticsClient({ data, periodDays }: AnalyticsClientPro
           label="Commandes"
           value={data.totalOrders}
           sub={`${data.deliveredOrders} livrées`}
+          icon={<TrendingUp size={18} />}
           accent="border-t-indigo-500"
           valueColor="text-indigo-400"
         />
@@ -129,6 +139,7 @@ export default function AnalyticsClient({ data, periodDays }: AnalyticsClientPro
           label="Revenus"
           value={formatAmount(data.totalRevenue)}
           sub={`Moy. ${formatAmount(data.avgOrderValue)}`}
+          icon={<DollarSign size={18} />}
           accent="border-t-emerald-500"
           valueColor="text-emerald-400"
         />
@@ -136,6 +147,7 @@ export default function AnalyticsClient({ data, periodDays }: AnalyticsClientPro
           label="Taux de livraison"
           value={data.deliveryRate + "%"}
           sub={`${data.cancelledOrders} annulées`}
+          icon={<CheckCircle2 size={18} />}
           accent="border-t-amber-500"
           valueColor="text-amber-400"
         />
@@ -143,16 +155,15 @@ export default function AnalyticsClient({ data, periodDays }: AnalyticsClientPro
           label="Délai moyen"
           value={data.avgDeliveryMin > 0 ? data.avgDeliveryMin + " min" : "—"}
           sub="pickup → livraison"
+          icon={<Clock size={18} />}
           accent="border-t-blue-500"
           valueColor="text-blue-400"
         />
       </div>
 
-      {/* Graphiques ligne 1 — Évolution commandes + Revenus */}
+      {/* Graphiques ligne 1 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-
-        {/* Line chart — volume commandes */}
-        <ChartCard title="Volume de commandes" subtitle="Évolution sur la période">
+        <ChartCard title="Volume de commandes" subtitle="Évolution sur la période" icon={<BarChart3 size={16} />}>
           <ResponsiveContainer width="100%" height={220}>
             <LineChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
@@ -165,14 +176,13 @@ export default function AnalyticsClient({ data, periodDays }: AnalyticsClientPro
             </LineChart>
           </ResponsiveContainer>
           <div className="flex gap-4 mt-3 px-1">
-            <Legend2 color="#6366f1" label="Total" />
-            <Legend2 color="#10b981" label="Livrées" />
-            <Legend2 color="#71717a" label="Annulées" dashed />
+            <LegendItem color="#6366f1" label="Total" />
+            <LegendItem color="#10b981" label="Livrées" />
+            <LegendItem color="#71717a" label="Annulées" dashed />
           </div>
         </ChartCard>
 
-        {/* Bar chart — Revenus */}
-        <ChartCard title="Revenus journaliers" subtitle="Commandes livrées uniquement">
+        <ChartCard title="Revenus journaliers" subtitle="Commandes livrées uniquement" icon={<DollarSign size={16} />}>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={chartData} barSize={activePeriod <= 7 ? 20 : 10}>
               <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
@@ -186,13 +196,11 @@ export default function AnalyticsClient({ data, periodDays }: AnalyticsClientPro
         </ChartCard>
       </div>
 
-      {/* Graphiques ligne 2 — Statuts + Livreurs */}
+      {/* Graphiques ligne 2 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-
-        {/* Pie chart — répartition statuts */}
-        <ChartCard title="Répartition des statuts" subtitle="Toutes les commandes (global)">
+        <ChartCard title="Répartition des statuts" subtitle="Toutes les commandes" icon={<PieChartIcon size={16} />}>
           {data.statusBreakdown.length === 0 ? (
-            <EmptyState message="Aucune commande" />
+            <EmptyState message="Aucune donnée" />
           ) : (
             <div className="flex items-center gap-4">
               <ResponsiveContainer width="55%" height={200}>
@@ -235,8 +243,7 @@ export default function AnalyticsClient({ data, periodDays }: AnalyticsClientPro
           )}
         </ChartCard>
 
-        {/* Bar chart horizontal — livraisons par jour (mix) */}
-        <ChartCard title="Livrées vs Annulées" subtitle="Comparaison journalière">
+        <ChartCard title="Livrées vs Annulées" subtitle="Comparaison journalière" icon={<BarChart3 size={16} />}>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={chartData} barSize={activePeriod <= 7 ? 14 : 7}>
               <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
@@ -247,19 +254,18 @@ export default function AnalyticsClient({ data, periodDays }: AnalyticsClientPro
               <Bar dataKey="Annulées" fill="#ef4444" radius={[3, 3, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
-          <div className="flex gap-4 mt-3 px-1">
-            <Legend2 color="#10b981" label="Livrées" />
-            <Legend2 color="#ef4444" label="Annulées" />
-          </div>
         </ChartCard>
       </div>
 
       {/* Classement livreurs */}
       <div className="bg-gray-900 border border-white/10 rounded-xl overflow-hidden">
         <div className="h-0.5 bg-indigo-500" />
-        <div className="px-6 py-4 border-b border-zinc-800">
-          <h2 className="text-sm font-bold text-zinc-100">Classement des livreurs</h2>
-          <p className="text-xs text-zinc-500 mt-0.5">Performance sur la période sélectionnée</p>
+        <div className="px-6 py-4 border-b border-zinc-800 flex items-center gap-3">
+          <Trophy className="text-amber-500" size={18} />
+          <div>
+            <h2 className="text-sm font-bold text-zinc-100">Classement des livreurs</h2>
+            <p className="text-xs text-zinc-500">Performance sur la période</p>
+          </div>
         </div>
 
         {data.courierRanking.length === 0 ? (
@@ -268,7 +274,7 @@ export default function AnalyticsClient({ data, periodDays }: AnalyticsClientPro
           <div className="divide-y divide-zinc-800">
             {data.courierRanking.map((courier, index) => (
               <div key={courier.id} className="flex items-center gap-4 px-6 py-4 hover:bg-zinc-800/40 transition-colors">
-
+                
                 {/* Rang */}
                 <div className={[
                   "w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0",
@@ -288,30 +294,34 @@ export default function AnalyticsClient({ data, periodDays }: AnalyticsClientPro
                 {/* Infos */}
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-zinc-100 truncate">{courier.full_name}</p>
-                  <p className="text-xs text-zinc-500 mt-0.5">
-                    {VEHICLE_ICONS[courier.vehicle_type] ?? "🏍️"} · {courier.total_deliveries} livraisons totales
-                  </p>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <VehicleLabel type={courier.vehicle_type} iconOnly iconSize={12} className="text-zinc-500" />
+                    <span className="text-xs text-zinc-500">· {courier.total_deliveries} au total</span>
+                  </div>
                 </div>
 
                 {/* Stats période */}
                 <div className="flex items-center gap-6 text-right flex-shrink-0">
                   <div>
-                    <p className="text-xs text-zinc-500">Période</p>
+                    <p className="text-[10px] uppercase tracking-wider text-zinc-600 font-bold">Période</p>
                     <p className="text-sm font-bold text-emerald-400 tabular-nums">
                       {courier.deliveriesInPeriod}
                     </p>
                   </div>
                   <div className="hidden sm:block">
-                    <p className="text-xs text-zinc-500">Revenus</p>
+                    <p className="text-[10px] uppercase tracking-wider text-zinc-600 font-bold">Revenus</p>
                     <p className="text-sm font-bold text-zinc-200 tabular-nums">
                       {formatAmount(courier.revenueInPeriod)}
                     </p>
                   </div>
                   <div className="hidden sm:block">
-                    <p className="text-xs text-zinc-500">Note</p>
-                    <p className="text-sm font-bold text-amber-400 tabular-nums">
-                      {courier.rating != null ? "★ " + courier.rating.toFixed(1) : "—"}
-                    </p>
+                    <p className="text-[10px] uppercase tracking-wider text-zinc-600 font-bold">Note</p>
+                    <div className="flex items-center justify-end gap-1 text-amber-400">
+                       <Star size={12} fill="currentColor" />
+                       <span className="text-sm font-bold tabular-nums">
+                         {courier.rating != null ? courier.rating.toFixed(1) : "—"}
+                       </span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -325,14 +335,17 @@ export default function AnalyticsClient({ data, periodDays }: AnalyticsClientPro
 
 // ─── Sous-composants ──────────────────────────────────────────────────────────
 
-function KpiCard({ label, value, sub, accent, valueColor }: {
-  label: string; value: string | number; sub: string; accent: string; valueColor: string;
+function KpiCard({ label, value, sub, accent, valueColor, icon }: {
+  label: string; value: string | number; sub: string; accent: string; valueColor: string; icon: React.ReactNode;
 }) {
   return (
-    <div className="bg-gray-900 border border-white/10 rounded-xl overflow-hidden">
-      <div className={["h-0.5", accent].join(" ")} />
+    <div className="bg-gray-900 border border-white/10 rounded-xl overflow-hidden relative">
+      <div className={["h-0.5 w-full absolute top-0", accent].join(" ")} />
       <div className="px-5 py-4">
-        <p className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-2">{label}</p>
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-xs font-medium text-zinc-500 uppercase tracking-wider">{label}</p>
+          <div className="text-zinc-700">{icon}</div>
+        </div>
         <p className={["text-2xl font-bold tabular-nums", valueColor].join(" ")}>{value}</p>
         <p className="text-xs text-zinc-600 mt-1">{sub}</p>
       </div>
@@ -340,22 +353,24 @@ function KpiCard({ label, value, sub, accent, valueColor }: {
   );
 }
 
-function ChartCard({ title, subtitle, children }: {
-  title: string; subtitle: string; children: React.ReactNode;
+function ChartCard({ title, subtitle, icon, children }: {
+  title: string; subtitle: string; icon: React.ReactNode; children: React.ReactNode;
 }) {
   return (
     <div className="bg-gray-900 border border-white/10 rounded-xl overflow-hidden">
-      <div className="h-0.5 bg-zinc-700" />
-      <div className="px-5 pt-4 pb-1">
-        <p className="text-sm font-bold text-zinc-100">{title}</p>
-        <p className="text-xs text-zinc-500 mt-0.5">{subtitle}</p>
+      <div className="px-5 pt-4 pb-1 flex items-center justify-between">
+        <div>
+          <p className="text-sm font-bold text-zinc-100">{title}</p>
+          <p className="text-xs text-zinc-500 mt-0.5">{subtitle}</p>
+        </div>
+        <div className="text-zinc-700">{icon}</div>
       </div>
       <div className="px-3 pb-4 pt-2">{children}</div>
     </div>
   );
 }
 
-function Legend2({ color, label, dashed }: { color: string; label: string; dashed?: boolean }) {
+function LegendItem({ color, label, dashed }: { color: string; label: string; dashed?: boolean }) {
   return (
     <div className="flex items-center gap-1.5 text-xs text-zinc-500">
       <span className={["w-5 border-t-2 inline-block", dashed ? "border-dashed" : ""].join(" ")}
@@ -367,6 +382,9 @@ function Legend2({ color, label, dashed }: { color: string; label: string; dashe
 
 function EmptyState({ message }: { message: string }) {
   return (
-    <div className="flex items-center justify-center py-12 text-zinc-600 text-sm">{message}</div>
+    <div className="flex flex-col items-center justify-center py-12 text-zinc-600 text-sm gap-2">
+      <PieChartIcon size={24} className="text-zinc-800" />
+      {message}
+    </div>
   );
 }

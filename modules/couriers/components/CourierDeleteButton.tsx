@@ -1,17 +1,17 @@
 /**
  * modules/couriers/components/courier-detail/CourierDeleteButton.tsx
- * Dark mode — style FleetOps
  */
 
 "use client";
 
 import { useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter }     from "next/navigation";
+import { Trash2 }        from "lucide-react";
 import { deleteCourierAction } from "@/modules/couriers/actions/courier.actions";
 
 interface CourierDeleteButtonProps {
-  courierId: string;
-  profileId: string;
+  courierId:   string;
+  profileId:   string;
   courierName: string;
 }
 
@@ -21,7 +21,7 @@ export function CourierDeleteButton({ courierId, profileId, courierName }: Couri
 
   function handleDelete() {
     const confirmed = window.confirm(
-      `⚠️ Supprimer ${courierName} ?\n\nCette action est IRRÉVERSIBLE :\n• Livreur retiré de la plateforme\n• Profil supprimé\n• Compte de connexion supprimé\n\nContinuer ?`
+      `Supprimer ${courierName} ?\n\nCette action est IRRÉVERSIBLE :\n• Livreur retiré de la plateforme\n• Profil supprimé\n• Compte de connexion supprimé\n\nContinuer ?`
     );
     if (!confirmed) return;
 
@@ -45,7 +45,9 @@ export function CourierDeleteButton({ courierId, profileId, courierName }: Couri
     >
       {isPending ? (
         <span className="w-3.5 h-3.5 border-2 border-red-700 border-t-red-400 rounded-full animate-spin" />
-      ) : "🗑️"}
+      ) : (
+        <Trash2 className="w-3.5 h-3.5" />
+      )}
       {isPending ? "Suppression..." : "Supprimer"}
     </button>
   );

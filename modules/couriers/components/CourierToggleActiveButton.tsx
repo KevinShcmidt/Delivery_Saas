@@ -1,43 +1,34 @@
 /**
  * modules/couriers/components/courier-detail/CourierToggleActiveButton.tsx
- * Dark mode — style FleetOps
  */
 
 "use client";
 
-import { useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useTransition }             from "react";
+import { useRouter }                 from "next/navigation";
+import { PowerOff, Power }           from "lucide-react";
 import { toggleCourierActiveAction } from "@/modules/couriers/actions/courier.actions";
 
 interface CourierToggleActiveButtonProps {
-  courierId: string;
-  profileId: string;
-  isActive: boolean;
+  courierId:   string;
+  profileId:   string;
+  isActive:    boolean;
   courierName: string;
 }
 
-export function CourierToggleActiveButton({
-  courierId,
-  profileId,
-  isActive,
-  courierName,
-}: CourierToggleActiveButtonProps) {
+export function CourierToggleActiveButton({ courierId, profileId, isActive, courierName }: CourierToggleActiveButtonProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
   function handleToggle() {
-    const action = isActive ? "désactiver" : "activer";
     const confirmed = window.confirm(
-      `${isActive ? "⚠️ Désactiver" : "✅ Activer"} le compte de ${courierName} ?`
+      `${isActive ? "Désactiver" : "Activer"} le compte de ${courierName} ?`
     );
     if (!confirmed) return;
 
     startTransition(async () => {
       const result = await toggleCourierActiveAction(courierId, profileId, !isActive);
-      if (!result.success) {
-        alert(`Erreur : ${result.error}`);
-        return;
-      }
+      if (!result.success) { alert(`Erreur : ${result.error}`); return; }
       router.refresh();
     });
   }
@@ -57,8 +48,10 @@ export function CourierToggleActiveButton({
     >
       {isPending ? (
         <span className={["w-3.5 h-3.5 border-2 rounded-full animate-spin", isActive ? "border-red-700 border-t-red-400" : "border-emerald-700 border-t-emerald-400"].join(" ")} />
+      ) : isActive ? (
+        <PowerOff className="w-3.5 h-3.5" />
       ) : (
-        <span>{isActive ? "🔴" : "🟢"}</span>
+        <Power className="w-3.5 h-3.5" />
       )}
       {isActive ? "Désactiver" : "Activer"}
     </button>
